@@ -127,25 +127,40 @@ This microservice allows users to:
 ---
 
 ## UML Sequence Diagram
-The following diagram shows how to interact with the microservice:
+The following diagram shows how to interact with the microservice and its connection to the MySQL database:
 
 ```plaintext
-Client                          Microservice
-   |                                  |
-   |  POST /import-logs (CSV File)    |
-   |--------------------------------->|
-   |                                  |
-   |       File processed and data    |
-   |<---------------------------------|
-   |                                  |
-   |  POST /calorie-summary (JSON)    |
-   |--------------------------------->|
-   |                                  |
-   |    JSON with calorie summary     |
-   |<---------------------------------|
-   |                                  |
-   |     GET /export-logs             |
-   |--------------------------------->|
-   |                                  |
-   |        CSV File downloaded       |
-   |<---------------------------------|
+Client                          Microservice                         MySQL Database
+   |                                  |                                      |
+   |  POST /import-logs (CSV File)    |                                      |
+   |--------------------------------->|                                      |
+   |                                  |  Connect to MySQL                    |
+   |                                  |------------------------------------->|
+   |                                  |                                      |
+   |                                  |   Insert file data into table        |
+   |                                  |<-------------------------------------|
+   |                                  |                                      |
+   |       File processed and data    |                                      |
+   |<---------------------------------|                                      |
+   |                                  |                                      |
+   |  POST /calorie-summary (JSON)    |                                      |
+   |--------------------------------->|                                      |
+   |                                  |  Connect to MySQL                    |
+   |                                  |------------------------------------->|
+   |                                  |                                      |
+   |     Query logs and calculate     |                                      |
+   |<---------------------------------|                                      |
+   |                                  |                                      |
+   |    JSON with calorie summary     |                                      |
+   |<---------------------------------|                                      |
+   |                                  |                                      |
+   |     GET /export-logs             |                                      |
+   |--------------------------------->|                                      |
+   |                                  |  Connect to MySQL                    |
+   |                                  |------------------------------------->|
+   |                                  |                                      |
+   |    Query logs and generate CSV   |                                      |
+   |<---------------------------------|                                      |
+   |                                  |                                      |
+   |        CSV File downloaded       |                                      |
+   |<---------------------------------|                                      |
