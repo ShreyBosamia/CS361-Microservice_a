@@ -1,2 +1,151 @@
-“Microservice A: Calorie Tracker Microservice ============================================ This microservice provides features for managing and analyzing calorie data, including: * Importing food logs from a CSV file. * Exporting food logs to a CSV file. * Viewing calorie intake summaries for specific date ranges. * * * How to Use the Microservice --------------------------- ### 1\. Requesting Data #### `/calorie-summary` Endpoint **Method**: POST **Request Body** (JSON): json Copy code `{ "start_date": "2024-01-01", "end_date": "2024-01-31" }` **Response**: json Copy code `{ "total_calories": 730, "average_calories": 243.33, "logs": [ {"food_name": "Apple", "amount": 1.0, "calories_per_unit": 52.0}, {"food_name": "Banana", "amount": 2.0, "calories_per_unit": 89.0}, {"food_name": "Chicken", "amount": 200.0, "calories_per_unit": 2.5} ] }` * * * ### 2\. Uploading Data #### `/import-logs` Endpoint **Method**: POST **Request**: Form-Data * **Key**: `file` (Attach a valid CSV file) **Response**: arduino Copy code `File uploaded and data imported successfully.` * * * ### 3\. Exporting Data #### `/export-logs` Endpoint **Method**: GET **Response**: * A CSV file (`food_logs.csv`) will be downloaded. * * * Setup Instructions ------------------ 1. **Install dependencies**: bash Copy code `pip install -r requirements.txt` 2. **Create a `.env` file** in the root directory with the following content: makefile Copy code `MYSQL_HOST=localhost MYSQL_USER=root MYSQL_PASSWORD=your_password MYSQL_DB=calorietracker` 3. **Import the database schema**: sql Copy code `CREATE DATABASE calorietracker; USE calorietracker; CREATE TABLE food_logs ( id INT AUTO_INCREMENT PRIMARY KEY, food_name VARCHAR(255) NOT NULL, amount FLOAT NOT NULL, calories_per_unit FLOAT NOT NULL, consumption_date DATE NOT NULL ); INSERT INTO food_logs (food_name, amount, calories_per_unit, consumption_date) VALUES ('Apple', 1, 52, '2024-01-01'), ('Banana', 2, 89, '2024-01-02'), ('Chicken', 200, 2.5, '2024-01-03');` 4. **Run the Flask app**: bash Copy code `python app.py` 5. **Interact with the microservice**: * Use the provided HTML pages: * `/import-logs-form` * `/calorie-summary-form` * `/export-logs` * Or use Postman/curl for testing the endpoints. * * * UML Sequence Diagram -------------------- Here’s a UML sequence diagram detailing how requests and responses work for the microservice: plaintext Copy code `Client --> Flask App: Sends Request (e.g., /calorie-summary or /import-logs) Flask App --> MySQL Database: Executes Query (Insert, Select, or Update) MySQL Database --> Flask App: Returns Query Results Flask App --> Client: Responds with JSON or File`”
+# Microservice A: Calorie Tracker Microservice
 
+## Description
+This microservice allows users to:
+1. Import food logs via a CSV file.
+2. Generate calorie summaries for a specified date range.
+3. Export all logs as a CSV file.
+
+---
+
+## Prerequisites and Setup
+
+### 1. Setting Up MySQL Database
+- Install MySQL and set up a database named **calorietracker**.
+- Create the `food_logs` table using the following SQL script:
+
+    ```sql
+    CREATE DATABASE calorietracker;
+
+    USE calorietracker;
+
+    CREATE TABLE food_logs (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        food_name VARCHAR(255) NOT NULL,
+        amount FLOAT NOT NULL,
+        calories_per_unit FLOAT NOT NULL,
+        consumption_date DATE NOT NULL
+    );
+
+    INSERT INTO food_logs (food_name, amount, calories_per_unit, consumption_date)
+    VALUES
+        ('Apple', 1, 52, '2024-01-01'),
+        ('Banana', 2, 89, '2024-01-02'),
+        ('Chicken', 200, 2.5, '2024-01-03');
+    ```
+
+### 2. Setting Up the `.env` File
+- Create a `.env` file in the root of the project directory with the following variables:
+    ```
+    MYSQL_HOST=localhost
+    MYSQL_USER=your_mysql_username
+    MYSQL_PASSWORD=your_mysql_password
+    MYSQL_DB=calorietracker
+    ```
+  - Replace `your_mysql_username` and `your_mysql_password` with your actual MySQL credentials.
+
+### 3. Running the Flask Server
+- Install required dependencies using `pip`:
+    ```bash
+    pip install flask mysql-connector-python python-dotenv pandas
+    ```
+- Run the Flask application:
+    ```bash
+    python app.py
+    ```
+- The server will be hosted locally on `http://127.0.0.1:5000`.
+
+---
+
+## How to Use the Microservice
+
+### Endpoints:
+
+1. **Import Logs**
+   - **URL**: `/import-logs`
+   - **Method**: `POST`
+   - **Input**: File (CSV)
+   - **Example Call (Python)**:
+     ```python
+     import requests
+
+     with open("food_logs.csv", "rb") as file:
+         response = requests.post("http://127.0.0.1:5000/import-logs", files={"file": file})
+         print(response.text)
+     ```
+   - **Using Postman**:
+     1. Set the request method to **POST**.
+     2. URL: `http://127.0.0.1:5000/import-logs`.
+     3. Go to the **Body** tab, select **form-data**, and add a key named `file` with a file value.
+     4. Select your CSV file to upload and click **Send**.
+
+2. **Calorie Summary**
+   - **URL**: `/calorie-summary`
+   - **Method**: `POST`
+   - **Input**: JSON with `start_date` and `end_date`.
+   - **Example Call (Python)**:
+     ```python
+     import requests
+
+     data = {
+         "start_date": "2024-01-01",
+         "end_date": "2024-01-31"
+     }
+     response = requests.post("http://127.0.0.1:5000/calorie-summary", json=data)
+     print(response.json())
+     ```
+   - **Using Postman**:
+     1. Set the request method to **POST**.
+     2. URL: `http://127.0.0.1:5000/calorie-summary`.
+     3. Go to the **Body** tab, select **raw**, and choose **JSON** format.
+     4. Enter the following JSON:
+        ```json
+        {
+            "start_date": "2024-01-01",
+            "end_date": "2024-01-31"
+        }
+        ```
+     5. Click **Send**.
+
+3. **Export Logs**
+   - **URL**: `/export-logs`
+   - **Method**: `GET`
+   - **Example Call (Python)**:
+     ```python
+     import requests
+
+     response = requests.get("http://127.0.0.1:5000/export-logs")
+     with open("exported_logs.csv", "wb") as file:
+         file.write(response.content)
+     print("Exported logs saved to 'exported_logs.csv'")
+     ```
+   - **Using Postman**:
+     1. Set the request method to **GET**.
+     2. URL: `http://127.0.0.1:5000/export-logs`.
+     3. Click **Send**. The CSV file will be downloaded.
+
+---
+
+## UML Sequence Diagram
+The following diagram shows how to interact with the microservice:
+
+```plaintext
+Client                          Microservice
+   |                                  |
+   |  POST /import-logs (CSV File)    |
+   |--------------------------------->|
+   |                                  |
+   |       File processed and data    |
+   |<---------------------------------|
+   |                                  |
+   |  POST /calorie-summary (JSON)    |
+   |--------------------------------->|
+   |                                  |
+   |    JSON with calorie summary     |
+   |<---------------------------------|
+   |                                  |
+   |     GET /export-logs             |
+   |--------------------------------->|
+   |                                  |
+   |        CSV File downloaded       |
+   |<---------------------------------|
