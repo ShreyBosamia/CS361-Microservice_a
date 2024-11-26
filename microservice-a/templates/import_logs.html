@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Logs</title>
+</head>
+<body>
+    <h1>Import Food Logs</h1>
+    <form action="/import-logs" method="post" enctype="multipart/form-data">
+        <label for="file">Choose a CSV File:</label>
+        <input type="file" id="file" name="file" required>
+        <button type="submit">Upload</button>
+    </form>
+</body>
+</html>
